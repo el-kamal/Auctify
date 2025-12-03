@@ -1,6 +1,16 @@
 import { useState, useEffect } from "react"
 import { ActorsService, Actor, ActorCreate } from "../../lib/api"
 import { Plus, Edit, Trash2, X, Search } from "lucide-react"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export default function VendorManagement() {
     const [vendors, setVendors] = useState<Actor[]>([])
@@ -9,6 +19,8 @@ export default function VendorManagement() {
     const [error, setError] = useState<string | null>(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingVendor, setEditingVendor] = useState<Actor | null>(null)
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+    const [vendorToDelete, setVendorToDelete] = useState<number | null>(null)
     const [formData, setFormData] = useState<ActorCreate>({
         name: "",
         type: "SELLER",
@@ -88,15 +100,22 @@ export default function VendorManagement() {
         }
     }
 
-    const handleDelete = async (id: number) => {
-        if (window.confirm("Êtes-vous sûr de vouloir supprimer ce vendeur ?")) {
-            try {
-                await ActorsService.deleteActor(id)
-                fetchVendors()
-            } catch (error: any) {
-                console.error("Failed to delete vendor", error)
-                setError(error.message || "Une erreur est survenue lors de la suppression du vendeur.")
-            }
+    const handleDeleteClick = (id: number) => {
+        setVendorToDelete(id)
+        setDeleteDialogOpen(true)
+    }
+
+    const confirmDelete = async () => {
+        if (vendorToDelete === null) return
+        try {
+            await ActorsService.deleteActor(vendorToDelete)
+            fetchVendors()
+        } catch (error: any) {
+            console.error("Failed to delete vendor", error)
+            setError(error.message || "Une erreur est survenue lors de la suppression du vendeur.")
+        } finally {
+            setDeleteDialogOpen(false)
+            setVendorToDelete(null)
         }
     }
 
@@ -169,7 +188,7 @@ export default function VendorManagement() {
                                         <Edit size={18} />
                                     </button>
                                     <button
-                                        onClick={() => handleDelete(vendor.id)}
+                                        onClick={() => handleDeleteClick(vendor.id)}
                                         className="text-red-600 hover:text-red-900"
                                     >
                                         <Trash2 size={18} />
@@ -287,6 +306,23 @@ export default function VendorManagement() {
                     </div>
                 </div>
             )}
+
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Êtes-vous sûr de vouloir supprimer ce vendeur ? Cette action est irréversible.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+                            Supprimer
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }

@@ -11,4 +11,7 @@ class CompanySettings(Base):
     iban = Column(String, nullable=False)
     bic = Column(String, nullable=False)
     logo_url = Column(String, nullable=True)
+    logo_bordereau = Column(String, nullable=True)
+    logo_facture = Column(String, nullable=True)
+    logo_decompte = Column(String, nullable=True)
     legal_mentions = Column(Text, nullable=True)

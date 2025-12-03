@@ -1,6 +1,16 @@
 import { useState, useEffect } from "react"
 import { ActorsService, Actor, ActorCreate } from "../../lib/api"
 import { Plus, Edit, Trash2, X, Search } from "lucide-react"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export default function BuyerManagement() {
     const [buyers, setBuyers] = useState<Actor[]>([])
@@ -9,6 +19,8 @@ export default function BuyerManagement() {
     const [error, setError] = useState<string | null>(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingBuyer, setEditingBuyer] = useState<Actor | null>(null)
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+    const [buyerToDelete, setBuyerToDelete] = useState<number | null>(null)
     const [formData, setFormData] = useState<ActorCreate>({
         name: "",
         type: "BUYER",
@@ -88,15 +100,22 @@ export default function BuyerManagement() {
         }
     }
 
-    const handleDelete = async (id: number) => {
-        if (window.confirm("Êtes-vous sûr de vouloir supprimer cet acheteur ?")) {
-            try {
-                await ActorsService.deleteActor(id)
-                fetchBuyers()
-            } catch (error: any) {
-                console.error("Failed to delete buyer", error)
-                setError(error.message || "Une erreur est survenue lors de la suppression de l'acheteur.")
-            }
+    const handleDeleteClick = (id: number) => {
+        setBuyerToDelete(id)
+        setDeleteDialogOpen(true)
+    }
+
+    const confirmDelete = async () => {
+        if (buyerToDelete === null) return
+        try {
+            await ActorsService.deleteActor(buyerToDelete)
+            fetchBuyers()
+        } catch (error: any) {
+            console.error("Failed to delete buyer", error)
+            setError(error.message || "Une erreur est survenue lors de la suppression de l'acheteur.")
+        } finally {
+            setDeleteDialogOpen(false)
+            setBuyerToDelete(null)
         }
     }
 
@@ -169,7 +188,7 @@ export default function BuyerManagement() {
                                         <Edit size={18} />
                                     </button>
                                     <button
-                                        onClick={() => handleDelete(buyer.id)}
+                                        onClick={() => handleDeleteClick(buyer.id)}
                                         className="text-red-600 hover:text-red-900"
                                     >
                                         <Trash2 size={18} />
@@ -287,6 +306,23 @@ export default function BuyerManagement() {
                     </div>
                 </div>
             )}
+
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Êtes-vous sûr de vouloir supprimer cet acheteur ? Cette action est irréversible.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+                            Supprimer
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }

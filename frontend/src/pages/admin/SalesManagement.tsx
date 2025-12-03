@@ -2,6 +2,16 @@ import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { AuctionsService, Auction, AuctionCreate } from "../../lib/api"
 import { Plus, Edit, Trash2, X, Settings } from "lucide-react"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 
 
@@ -20,6 +30,8 @@ export default function SalesManagement() {
     const [error, setError] = useState<string | null>(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingAuction, setEditingAuction] = useState<Auction | null>(null)
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+    const [auctionToDelete, setAuctionToDelete] = useState<number | null>(null)
     const [formData, setFormData] = useState<AuctionCreate>({
         name: "",
         date: new Date().toISOString().split('T')[0],
@@ -90,15 +102,22 @@ export default function SalesManagement() {
         }
     }
 
-    const handleDelete = async (id: number) => {
-        if (window.confirm("Êtes-vous sûr de vouloir supprimer cette vente ?")) {
-            try {
-                await AuctionsService.deleteAuction(id)
-                fetchAuctions()
-            } catch (error: any) {
-                console.error("Failed to delete auction", error)
-                setError(error.message || "Une erreur est survenue lors de la suppression de la vente.")
-            }
+    const handleDeleteClick = (id: number) => {
+        setAuctionToDelete(id)
+        setDeleteDialogOpen(true)
+    }
+
+    const confirmDelete = async () => {
+        if (auctionToDelete === null) return
+        try {
+            await AuctionsService.deleteAuction(auctionToDelete)
+            fetchAuctions()
+        } catch (error: any) {
+            console.error("Failed to delete auction", error)
+            setError(error.message || "Une erreur est survenue lors de la suppression de la vente.")
+        } finally {
+            setDeleteDialogOpen(false)
+            setAuctionToDelete(null)
         }
     }
 
@@ -167,7 +186,7 @@ export default function SalesManagement() {
                                             <Edit size={18} />
                                         </button>
                                         <button
-                                            onClick={() => handleDelete(auction.id)}
+                                            onClick={() => handleDeleteClick(auction.id)}
                                             className="text-red-600 hover:text-red-900"
                                         >
                                             <Trash2 size={18} />
@@ -285,6 +304,23 @@ export default function SalesManagement() {
                     </div>
                 </div>
             )}
+
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Êtes-vous sûr de vouloir supprimer cette vente ? Cette action est irréversible.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+                            Supprimer
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }

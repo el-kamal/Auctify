@@ -1,6 +1,16 @@
 import { useState, useEffect } from "react"
 import { UsersService, User, UserCreate, UserUpdate, api } from "../../lib/api"
 import { Plus, Edit, Trash2, X } from "lucide-react"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export default function UserManagement() {
     const [users, setUsers] = useState<User[]>([])
@@ -8,6 +18,8 @@ export default function UserManagement() {
     const [error, setError] = useState<string | null>(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingUser, setEditingUser] = useState<User | null>(null)
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+    const [userToDelete, setUserToDelete] = useState<number | null>(null)
     const [formData, setFormData] = useState<UserCreate>({
         email: "",
         password: "",
@@ -86,15 +98,22 @@ export default function UserManagement() {
         }
     }
 
-    const handleDelete = async (id: number) => {
-        if (window.confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?")) {
-            try {
-                await UsersService.deleteUser(id)
-                fetchUsers()
-            } catch (error: any) {
-                console.error("Failed to delete user", error)
-                setError(error.message || "Une erreur est survenue lors de la suppression de l'utilisateur.")
-            }
+    const handleDeleteClick = (id: number) => {
+        setUserToDelete(id)
+        setDeleteDialogOpen(true)
+    }
+
+    const confirmDelete = async () => {
+        if (userToDelete === null) return
+        try {
+            await UsersService.deleteUser(userToDelete)
+            fetchUsers()
+        } catch (error: any) {
+            console.error("Failed to delete user", error)
+            setError(error.message || "Une erreur est survenue lors de la suppression de l'utilisateur.")
+        } finally {
+            setDeleteDialogOpen(false)
+            setUserToDelete(null)
         }
     }
 
@@ -150,7 +169,7 @@ export default function UserManagement() {
                                         <Edit size={18} />
                                     </button>
                                     <button
-                                        onClick={() => handleDelete(user.id)}
+                                        onClick={() => handleDeleteClick(user.id)}
                                         className="text-red-600 hover:text-red-900"
                                     >
                                         <Trash2 size={18} />
@@ -244,6 +263,23 @@ export default function UserManagement() {
                     </div>
                 </div>
             )}
+
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+                            Supprimer
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }
