@@ -10,6 +10,7 @@ class AuctionBase(BaseModel):
     status: AuctionStatus = AuctionStatus.CREATED
     buyer_fee_rate: float = 0.20
     seller_fee_rate: float = 0.05
+    platform_fee_rate: float = 0.0
 
 class AuctionCreate(AuctionBase):
     pass
@@ -20,6 +21,7 @@ class AuctionUpdate(BaseModel):
     status: Optional[AuctionStatus] = None
     buyer_fee_rate: Optional[float] = None
     seller_fee_rate: Optional[float] = None
+    platform_fee_rate: Optional[float] = None
 
 class AuctionResponse(AuctionBase):
     id: int

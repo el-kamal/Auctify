@@ -78,7 +78,7 @@ async def generate_invoices(
         total_incl = 0.0
         
         for lot in buyer_lots:
-            vat_details = VATService.calculate_lines(lot, auction.buyer_fee_rate)
+            vat_details = VATService.calculate_lines(lot, auction.buyer_fee_rate, auction.platform_fee_rate)
             
             # Lot Line
             lines.append({
@@ -97,6 +97,16 @@ async def generate_invoices(
                 "vat_amount": vat_details['fees']['vat_amount'],
                 "total": vat_details['fees']['total']
             })
+
+            # Platform Fees Line
+            if vat_details['platform_fees']['total'] > 0:
+                lines.append({
+                    "description": f"Frais Plateforme Lot {lot.lot_number}",
+                    "base": vat_details['platform_fees']['base'],
+                    "vat_rate": vat_details['platform_fees']['vat_rate'],
+                    "vat_amount": vat_details['platform_fees']['vat_amount'],
+                    "total": vat_details['platform_fees']['total']
+                })
             
             total_excl += vat_details['total']['excl']
             total_vat += vat_details['total']['vat']

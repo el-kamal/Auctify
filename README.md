@@ -5,7 +5,7 @@ Auctify V2 is a comprehensive SaaS platform for managing auction houses. It stre
 ## 🚀 Features
 
 ### 1. Auction Management
-- **Create & Manage Sales**: Create auctions with details like name, date, and fee rates.
+- **Create & Manage Sales**: Create auctions with details like name, date, and fee rates (Buyer, Seller, Platform).
 - **Auto-Numbering**: Auctions are automatically assigned a unique ID in the format `DD-MM-YYYY-XXXX`.
 - **Status Tracking**: Track auction lifecycle (Created, Mapped, Closed).
 

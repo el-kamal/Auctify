@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { AuctionsService, Auction, AuctionCreate } from "../../lib/api"
-import { Plus, Edit, Trash2, X } from "lucide-react"
+import { Plus, Edit, Trash2, X, Settings } from "lucide-react"
+
+
 
 export default function SalesManagement() {
     const getStatusLabel = (status: string) => {
@@ -23,7 +25,8 @@ export default function SalesManagement() {
         date: new Date().toISOString().split('T')[0],
         status: "CREATED",
         buyer_fee_rate: 0.20,
-        seller_fee_rate: 0.05
+        seller_fee_rate: 0.05,
+        platform_fee_rate: 0.0
     })
 
     useEffect(() => {
@@ -50,7 +53,8 @@ export default function SalesManagement() {
                 date: auction.date ? new Date(auction.date).toISOString().split('T')[0] : "",
                 status: auction.status,
                 buyer_fee_rate: auction.buyer_fee_rate,
-                seller_fee_rate: auction.seller_fee_rate
+                seller_fee_rate: auction.seller_fee_rate,
+                platform_fee_rate: auction.platform_fee_rate
             })
         } else {
             setEditingAuction(null)
@@ -59,7 +63,8 @@ export default function SalesManagement() {
                 date: new Date().toISOString().split('T')[0],
                 status: "CREATED",
                 buyer_fee_rate: 0.20,
-                seller_fee_rate: 0.05
+                seller_fee_rate: 0.05,
+                platform_fee_rate: 0.0
             })
         }
         setIsModalOpen(true)
@@ -113,7 +118,7 @@ export default function SalesManagement() {
                 </button>
             </div>
 
-            <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="bg-white rounded-lg shadow overflow-hidden overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
@@ -123,6 +128,7 @@ export default function SalesManagement() {
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Frais acheteur</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Frais vendeur</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Frais plateforme</th>
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
@@ -142,27 +148,31 @@ export default function SalesManagement() {
                                         {getStatusLabel(auction.status)}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap">{(auction.buyer_fee_rate * 100).toFixed(0)}%</td>
-                                <td className="px-6 py-4 whitespace-nowrap">{(auction.seller_fee_rate * 100).toFixed(0)}%</td>
+                                <td className="px-6 py-4 whitespace-nowrap">{(auction.buyer_fee_rate * 100).toFixed(2).replace('.', ',')}%</td>
+                                <td className="px-6 py-4 whitespace-nowrap">{(auction.seller_fee_rate * 100).toFixed(2).replace('.', ',')}%</td>
+                                <td className="px-6 py-4 whitespace-nowrap">{(auction.platform_fee_rate * 100).toFixed(2).replace('.', ',')}%</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <Link
-                                        to={`/sales/${auction.id}/import-mapping`}
-                                        className="text-blue-600 hover:text-blue-900 mr-4 font-bold"
-                                    >
-                                        Gérer
-                                    </Link>
-                                    <button
-                                        onClick={() => handleOpenModal(auction)}
-                                        className="text-indigo-600 hover:text-indigo-900 mr-4"
-                                    >
-                                        <Edit size={18} />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(auction.id)}
-                                        className="text-red-600 hover:text-red-900"
-                                    >
-                                        <Trash2 size={18} />
-                                    </button>
+                                    <div className="flex justify-end items-center gap-4">
+                                        <Link
+                                            to={`/sales/${auction.id}/import-mapping`}
+                                            className="text-blue-600 hover:text-blue-900"
+                                            title="Gérer"
+                                        >
+                                            <Settings size={18} />
+                                        </Link>
+                                        <button
+                                            onClick={() => handleOpenModal(auction)}
+                                            className="text-indigo-600 hover:text-indigo-900"
+                                        >
+                                            <Edit size={18} />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(auction.id)}
+                                            className="text-red-600 hover:text-red-900"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}
@@ -229,7 +239,7 @@ export default function SalesManagement() {
                                     <label className="block text-sm font-medium text-gray-700">Frais acheteur</label>
                                     <input
                                         type="number"
-                                        step="0.01"
+                                        step="0.001"
                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
                                         value={formData.buyer_fee_rate}
                                         onChange={(e) => setFormData({ ...formData, buyer_fee_rate: parseFloat(e.target.value) })}
@@ -239,10 +249,20 @@ export default function SalesManagement() {
                                     <label className="block text-sm font-medium text-gray-700">Frais vendeur</label>
                                     <input
                                         type="number"
-                                        step="0.01"
+                                        step="0.001"
                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
                                         value={formData.seller_fee_rate}
                                         onChange={(e) => setFormData({ ...formData, seller_fee_rate: parseFloat(e.target.value) })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Frais plateforme</label>
+                                    <input
+                                        type="number"
+                                        step="0.001"
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
+                                        value={formData.platform_fee_rate}
+                                        onChange={(e) => setFormData({ ...formData, platform_fee_rate: parseFloat(e.target.value) })}
                                     />
                                 </div>
                             </div>

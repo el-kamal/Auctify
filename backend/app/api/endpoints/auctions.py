@@ -53,6 +53,8 @@ async def create_auction(
         date=auction_in.date,
         status=auction_in.status,
         buyer_fee_rate=auction_in.buyer_fee_rate,
+        seller_fee_rate=auction_in.seller_fee_rate,
+        platform_fee_rate=auction_in.platform_fee_rate,
     )
     db.add(auction)
     await db.commit()

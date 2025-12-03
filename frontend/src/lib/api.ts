@@ -23,6 +23,7 @@ export interface Auction {
     status: 'CREATED' | 'MAPPED' | 'CLOSED'
     buyer_fee_rate: number
     seller_fee_rate: number
+    platform_fee_rate: number
 }
 
 export interface AuctionCreate {
@@ -31,6 +32,7 @@ export interface AuctionCreate {
     status?: string
     buyer_fee_rate?: number
     seller_fee_rate?: number
+    platform_fee_rate?: number
 }
 
 export interface AuctionUpdate {
@@ -39,6 +41,7 @@ export interface AuctionUpdate {
     status?: string
     buyer_fee_rate?: number
     seller_fee_rate?: number
+    platform_fee_rate?: number
 }
 
 export const AuctionsService = {

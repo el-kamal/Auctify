@@ -17,5 +17,6 @@ class Auction(Base):
     status = Column(Enum(AuctionStatus), default=AuctionStatus.CREATED, nullable=False)
     buyer_fee_rate = Column(Float, default=0.20, nullable=False)
     seller_fee_rate = Column(Float, default=0.05, nullable=False)
+    platform_fee_rate = Column(Float, default=0.0, nullable=False)
     
     lots = relationship("Lot", back_populates="auction")

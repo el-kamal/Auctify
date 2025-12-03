@@ -2,7 +2,7 @@ from app.models.actor import ActorType
 
 class VATService:
     @staticmethod
-    def calculate_lines(lot, buyer_fee_rate: float):
+    def calculate_lines(lot, buyer_fee_rate: float, platform_fee_rate: float = 0.0):
         """
         Calculates VAT details for a Lot.
         
@@ -17,6 +17,7 @@ class VATService:
         
         hammer_price = lot.hammer_price or 0
         buyer_fees_excl = hammer_price * buyer_fee_rate
+        platform_fees_excl = hammer_price * platform_fee_rate
         
         # Determine Seller Type
         seller_type = lot.seller.type if lot.seller else ActorType.SELLER # Default to Seller if unknown? Or maybe we should default to Private?
@@ -48,6 +49,11 @@ class VATService:
         fees_vat_rate = 0.20
         fees_vat_amount = buyer_fees_excl * fees_vat_rate
         fees_total = buyer_fees_excl + fees_vat_amount
+
+        # Platform Fees VAT (Always 20%)
+        platform_fees_vat_rate = 0.20
+        platform_fees_vat_amount = platform_fees_excl * platform_fees_vat_rate
+        platform_fees_total = platform_fees_excl + platform_fees_vat_amount
         
         return {
             "lot": {
@@ -62,9 +68,15 @@ class VATService:
                 "vat_amount": fees_vat_amount,
                 "total": fees_total
             },
+            "platform_fees": {
+                "base": platform_fees_excl,
+                "vat_rate": platform_fees_vat_rate,
+                "vat_amount": platform_fees_vat_amount,
+                "total": platform_fees_total
+            },
             "total": {
-                "excl": hammer_price + buyer_fees_excl,
-                "vat": lot_vat_amount + fees_vat_amount,
-                "incl": lot_total + fees_total
+                "excl": hammer_price + buyer_fees_excl + platform_fees_excl,
+                "vat": lot_vat_amount + fees_vat_amount + platform_fees_vat_amount,
+                "incl": lot_total + fees_total + platform_fees_total
             }
         }
