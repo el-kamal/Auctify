@@ -7,7 +7,9 @@ import { ImportResults } from '@/pages/ImportResults'
 import { Invoices } from '@/pages/Invoices'
 import { Settlements } from '@/pages/Settlements'
 import SalesManagement from '@/pages/admin/SalesManagement'
-import UserManagement from '@/pages/admin/UserManagement'
+import UserManagement from "./pages/admin/UserManagement"
+import VendorManagement from "./pages/admin/VendorManagement"
+import BuyerManagement from "./pages/admin/BuyerManagement"
 import { SettingsPage } from '@/pages/Settings'
 import { AuthProvider, useAuth, UserRole } from '@/context/AuthContext'
 
@@ -59,6 +61,8 @@ function App() {
             {/* Admin Routes */}
             <Route path="/sales" element={<ProtectedRoute allowedRoles={['ADMIN']}><Layout><SalesManagement /></Layout></ProtectedRoute>} />
             <Route path="/users" element={<ProtectedRoute allowedRoles={['ADMIN']}><Layout><UserManagement /></Layout></ProtectedRoute>} />
+            <Route path="/vendors" element={<ProtectedRoute allowedRoles={['ADMIN', 'CLERK']}><Layout><VendorManagement /></Layout></ProtectedRoute>} />
+            <Route path="/buyers" element={<ProtectedRoute allowedRoles={['ADMIN', 'CLERK']}><Layout><BuyerManagement /></Layout></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute allowedRoles={['ADMIN']}><Layout><SettingsPage /></Layout></ProtectedRoute>} />
           </Route>
 

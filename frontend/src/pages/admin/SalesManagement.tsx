@@ -117,6 +117,7 @@ export default function SalesManagement() {
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Numéro</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
@@ -128,6 +129,7 @@ export default function SalesManagement() {
                     <tbody className="bg-white divide-y divide-gray-200">
                         {auctions.map((auction) => (
                             <tr key={auction.id}>
+                                <td className="px-6 py-4 whitespace-nowrap font-mono text-sm text-gray-500">{auction.number || "-"}</td>
                                 <td className="px-6 py-4 whitespace-nowrap">{auction.name}</td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     {auction.date ? new Date(auction.date).toLocaleDateString() : "-"}
@@ -181,6 +183,17 @@ export default function SalesManagement() {
                         </div>
                         <form onSubmit={handleSubmit}>
                             <div className="space-y-4">
+                                {editingAuction && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">Numéro</label>
+                                        <input
+                                            type="text"
+                                            disabled
+                                            className="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm border p-2 text-gray-500"
+                                            value={editingAuction.number || "Généré automatiquement"}
+                                        />
+                                    </div>
+                                )}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700">Nom</label>
                                     <input

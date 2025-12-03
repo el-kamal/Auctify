@@ -11,6 +11,7 @@ class AuctionStatus(str, enum.Enum):
 
 class Auction(Base):
     id = Column(Integer, primary_key=True, index=True)
+    number = Column(String, unique=True, nullable=True) # DD-MM-YYYY-XXXX
     name = Column(String, nullable=False)  # e.g., filename "Vente Palette.xlsx"
     date = Column(DateTime, default=datetime.utcnow)
     status = Column(Enum(AuctionStatus), default=AuctionStatus.CREATED, nullable=False)

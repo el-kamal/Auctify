@@ -5,6 +5,7 @@ from app.models.auction import AuctionStatus
 
 class AuctionBase(BaseModel):
     name: str
+    number: Optional[str] = None
     date: Optional[datetime] = None
     status: AuctionStatus = AuctionStatus.CREATED
     buyer_fee_rate: float = 0.20
@@ -22,6 +23,7 @@ class AuctionUpdate(BaseModel):
 
 class AuctionResponse(AuctionBase):
     id: int
+    number: Optional[str] = None
 
     class Config:
         from_attributes = True

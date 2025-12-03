@@ -1,7 +1,7 @@
 import axios from "axios"
 
 const api = axios.create({
-    baseURL: "http://localhost:8000/api/v1",
+    baseURL: "http://127.0.0.1:8000/api/v1",
     headers: {
         "Content-Type": "application/json",
     },
@@ -18,8 +18,9 @@ api.interceptors.request.use((config) => {
 export interface Auction {
     id: number
     name: string
+    number?: string
     date: string
-    status: string
+    status: 'CREATED' | 'MAPPED' | 'CLOSED'
     buyer_fee_rate: number
     seller_fee_rate: number
 }
@@ -98,6 +99,63 @@ export const UsersService = {
     },
     deleteUser: async (id: number) => {
         const response = await api.delete<User>(`/users/${id}`)
+        return response.data
+    },
+}
+
+export interface Actor {
+    id: number
+    name: string
+    type: "SELLER" | "BUYER"
+    email?: string
+    phone_number?: string
+    siren_siret?: string
+    address?: string
+    iban?: string
+    bic?: string
+    vat_subject: boolean
+}
+
+export interface ActorCreate {
+    name: string
+    type: "SELLER" | "BUYER"
+    email?: string
+    phone_number?: string
+    siren_siret?: string
+    address?: string
+    iban?: string
+    bic?: string
+    vat_subject?: boolean
+}
+
+export interface ActorUpdate {
+    name?: string
+    type?: "SELLER" | "BUYER"
+    email?: string
+    phone_number?: string
+    siren_siret?: string
+    address?: string
+    iban?: string
+    bic?: string
+    vat_subject?: boolean
+}
+
+export const ActorsService = {
+    getActors: async (type?: "SELLER" | "BUYER") => {
+        const params = type ? { type } : {}
+        const response = await api.get<Actor[]>("/actors/", { params })
+        return response.data
+    },
+    createActor: async (data: ActorCreate) => {
+        const response = await api.post<Actor>("/actors/", data)
+        return response.data
+    },
+    updateActor: async (id: number, data: ActorUpdate) => {
+        const response = await api.put<Actor>(`/actors/${id}`, data)
+        return response.data
+    },
+    deleteActor: async (id: number) => {
+        const response = await api.delete<Actor>(`/actors/${id}`)
         return response.data
     },
 }

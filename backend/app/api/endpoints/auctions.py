@@ -1,7 +1,9 @@
 from typing import List, Any
+from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import func
 from app.api import deps
 from app.models.auction import Auction, AuctionStatus
 from app.models.user import User
@@ -33,8 +35,21 @@ async def create_auction(
     """
     Create new auction.
     """
+    # Generate auction number
+    # Count auctions for the same date
+    start_of_day = datetime(auction_in.date.year, auction_in.date.month, auction_in.date.day)
+    end_of_day = start_of_day + timedelta(days=1)
+    
+    result = await db.execute(
+        select(func.count(Auction.id)).where(Auction.date >= start_of_day, Auction.date < end_of_day)
+    )
+    count = result.scalar() or 0
+    
+    number = f"{auction_in.date.day:02d}-{auction_in.date.month:02d}-{auction_in.date.year}-{count+1:04d}"
+
     auction = Auction(
         name=auction_in.name,
+        number=number,
         date=auction_in.date,
         status=auction_in.status,
         buyer_fee_rate=auction_in.buyer_fee_rate,

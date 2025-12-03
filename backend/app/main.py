@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.endpoints import import_api, reconciliation_api, invoices_api, settlements_api, login, company, auctions, users
+from app.api.endpoints import import_api, reconciliation_api, invoices_api, settlements_api, login, company, auctions, users, actors
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -22,6 +22,18 @@ async def global_exception_handler(request: Request, exc: Exception):
         content={"message": "Internal Server Error"},
     )
 
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    print(f"Incoming request: {request.method} {request.url}")
+    print(f"Headers: {request.headers}")
+    try:
+        response = await call_next(request)
+        print(f"Response status: {response.status_code}")
+        return response
+    except Exception as e:
+        print(f"Request failed: {str(e)}")
+        raise e
+
 # Set all CORS enabled origins
 if settings.BACKEND_CORS_ORIGINS:
     app.add_middleware(
@@ -40,6 +52,7 @@ app.include_router(settlements_api.router, prefix=f"{settings.API_V1_STR}/settle
 app.include_router(company.router, prefix=f"{settings.API_V1_STR}/company", tags=["company"])
 app.include_router(auctions.router, prefix=f"{settings.API_V1_STR}/auctions", tags=["auctions"])
 app.include_router(users.router, prefix=f"{settings.API_V1_STR}/users", tags=["users"])
+app.include_router(actors.router, prefix=f"{settings.API_V1_STR}/actors", tags=["actors"])
 
 @app.get("/")
 async def root():

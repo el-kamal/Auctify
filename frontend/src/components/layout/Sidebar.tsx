@@ -13,7 +13,9 @@ export function Sidebar() {
     const generalItems = [
         { icon: LayoutDashboard, label: "Tableau de Bord", href: "/dashboard", roles: ['ADMIN', 'CLERK'] },
         { icon: Gavel, label: "Gestion des ventes", href: "/sales", roles: ['ADMIN'] },
-        { icon: Users, label: "Utilisateurs", href: "/users", roles: ['ADMIN'] },
+        { icon: Users, label: "Gestion utilisateurs", href: "/users", roles: ['ADMIN'] },
+        { icon: Users, label: "Gestion Vendeurs", href: "/vendors", roles: ['ADMIN', 'CLERK'] },
+        { icon: Users, label: "Gestion Acheteurs", href: "/buyers", roles: ['ADMIN', 'CLERK'] },
         { icon: Settings, label: "Paramètres", href: "/settings", roles: ['ADMIN'] },
     ]
 

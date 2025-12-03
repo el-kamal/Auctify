@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { UsersService, User, UserCreate, UserUpdate } from "../../lib/api"
+import { UsersService, User, UserCreate, UserUpdate, api } from "../../lib/api"
 import { Plus, Edit, Trash2, X } from "lucide-react"
 
 export default function UserManagement() {
@@ -17,6 +17,7 @@ export default function UserManagement() {
     })
 
     useEffect(() => {
+        console.log("API Base URL:", api.defaults.baseURL)
         fetchUsers()
     }, [])
 
@@ -26,6 +27,12 @@ export default function UserManagement() {
             setUsers(data)
         } catch (error: any) {
             console.error("Failed to fetch users", error)
+            console.log("Error details:", {
+                message: error.message,
+                code: error.code,
+                config: error.config,
+                response: error.response
+            })
             setError(error.message || "Impossible de charger les utilisateurs")
         } finally {
             setLoading(false)

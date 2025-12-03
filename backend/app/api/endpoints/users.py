@@ -3,7 +3,9 @@ from typing import Any, List
 from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from pydantic.networks import EmailStr
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from sqlalchemy import delete
 
 from app.api import deps
 from app.core.config import settings
@@ -14,33 +16,36 @@ from app.core.security import get_password_hash
 router = APIRouter()
 
 @router.get("/", response_model=List[UserSchema])
-def read_users(
-    db: Session = Depends(deps.get_db),
+async def read_users(
+    db: AsyncSession = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
-    current_user: User = Depends(deps.get_current_active_user),
+    current_user: User = Depends(deps.get_current_user),
 ) -> Any:
     """
     Retrieve users.
     """
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=400, detail="Not enough permissions")
-    users = db.query(User).offset(skip).limit(limit).all()
+    result = await db.execute(select(User).offset(skip).limit(limit))
+    users = result.scalars().all()
     return users
 
 @router.post("/", response_model=UserSchema)
-def create_user(
+async def create_user(
     *,
-    db: Session = Depends(deps.get_db),
+    db: AsyncSession = Depends(deps.get_db),
     user_in: UserCreate,
-    current_user: User = Depends(deps.get_current_active_user),
+    current_user: User = Depends(deps.get_current_user),
 ) -> Any:
     """
     Create new user.
     """
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=400, detail="Not enough permissions")
-    user = db.query(User).filter(User.email == user_in.email).first()
+    
+    result = await db.execute(select(User).filter(User.email == user_in.email))
+    user = result.scalars().first()
     if user:
         raise HTTPException(
             status_code=400,
@@ -51,24 +56,26 @@ def create_user(
     del obj_in_data["password"]
     db_obj = User(**obj_in_data, hashed_password=get_password_hash(user_in.password))
     db.add(db_obj)
-    db.commit()
-    db.refresh(db_obj)
+    await db.commit()
+    await db.refresh(db_obj)
     return db_obj
 
 @router.put("/{user_id}", response_model=UserSchema)
-def update_user(
+async def update_user(
     *,
-    db: Session = Depends(deps.get_db),
+    db: AsyncSession = Depends(deps.get_db),
     user_id: int,
     user_in: UserUpdate,
-    current_user: User = Depends(deps.get_current_active_user),
+    current_user: User = Depends(deps.get_current_user),
 ) -> Any:
     """
     Update a user.
     """
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=400, detail="Not enough permissions")
-    user = db.query(User).filter(User.id == user_id).first()
+    
+    result = await db.execute(select(User).filter(User.id == user_id))
+    user = result.scalars().first()
     if not user:
         raise HTTPException(
             status_code=404,
@@ -91,28 +98,31 @@ def update_user(
             setattr(user, field, update_data[field])
             
     db.add(user)
-    db.commit()
-    db.refresh(user)
+    await db.commit()
+    await db.refresh(user)
     return user
 
 @router.delete("/{user_id}", response_model=UserSchema)
-def delete_user(
+async def delete_user(
     *,
-    db: Session = Depends(deps.get_db),
+    db: AsyncSession = Depends(deps.get_db),
     user_id: int,
-    current_user: User = Depends(deps.get_current_active_user),
+    current_user: User = Depends(deps.get_current_user),
 ) -> Any:
     """
     Delete a user.
     """
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=400, detail="Not enough permissions")
-    user = db.query(User).filter(User.id == user_id).first()
+    
+    result = await db.execute(select(User).filter(User.id == user_id))
+    user = result.scalars().first()
     if not user:
         raise HTTPException(
             status_code=404,
             detail="The user with this id does not exist in the system",
         )
-    db.delete(user)
-    db.commit()
+    
+    await db.delete(user)
+    await db.commit()
     return user

@@ -54,26 +54,68 @@ class ReconciliationService:
             
             # 3. Get or Create Buyer
             buyer = None
-            if buyer_code:
-                # Try to find by name first if code is not unique or just use name as key?
-                # Let's use name + firstname as unique key for now or just name if unique constraint
-                # The Actor model has unique name. Let's construct a unique name.
+            
+            # Extract additional fields
+            buyer_zip = row.get("CP")
+            buyer_city = row.get("Ville")
+            buyer_mobile = row.get("Mobile")
+            buyer_siren = row.get("SIREN") or row.get("SIRET") # Handle both column names if possible
+            
+            # Construct Address
+            full_address_parts = []
+            if pd.notna(buyer_address):
+                full_address_parts.append(str(buyer_address))
+            if pd.notna(buyer_zip):
+                full_address_parts.append(str(buyer_zip))
+            if pd.notna(buyer_city):
+                full_address_parts.append(str(buyer_city))
+            
+            full_address = " ".join(full_address_parts) if full_address_parts else None
+            
+            # Format Phone Number
+            formatted_phone = None
+            if pd.notna(buyer_mobile):
+                phone_str = str(buyer_mobile).split('.')[0] # Handle float conversion if any
+                if phone_str.startswith("33"):
+                    formatted_phone = "0" + phone_str[2:]
+                else:
+                    formatted_phone = phone_str
+
+            if buyer_email and pd.notna(buyer_email):
+                # Try to find by Email first
+                result = await db.execute(select(Actor).where(Actor.email == buyer_email, Actor.type == ActorType.BUYER))
+                buyer = result.scalars().first()
+
+            if not buyer and (buyer_code or buyer_name):
+                # Fallback to Name if Email didn't match or wasn't present
                 full_name = f"{buyer_name} {buyer_firstname}".strip()
                 if not full_name:
                     full_name = str(buyer_code)
                 
-                result = await db.execute(select(Actor).where(Actor.name == full_name, Actor.type == ActorType.BUYER))
-                buyer = result.scalars().first()
+                # If we didn't search by email (or failed), search by name
+                if not buyer:
+                     result = await db.execute(select(Actor).where(Actor.name == full_name, Actor.type == ActorType.BUYER))
+                     buyer = result.scalars().first()
                 
                 if not buyer:
                     buyer = Actor(
                         name=full_name, 
                         type=ActorType.BUYER,
                         email=buyer_email if pd.notna(buyer_email) else None,
-                        address=buyer_address if pd.notna(buyer_address) else None
+                        address=full_address,
+                        phone_number=formatted_phone,
+                        siren_siret=str(buyer_siren) if pd.notna(buyer_siren) else None
                     )
                     db.add(buyer)
                     await db.flush()
+            
+            # Update existing buyer info if needed? 
+            # User said "if it do not exists it creates it... before linking". 
+            # Implicitly, if it exists, we might want to update missing fields? 
+            # For now, let's stick to "create if not exists" as requested, 
+            # but maybe update phone/address if they are missing in DB?
+            # Let's keep it simple: create if not exists.
+
             
             # 4. Match Logic
             if lot_number in db_lots:

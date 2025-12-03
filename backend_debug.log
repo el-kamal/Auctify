@@ -6307,3 +6307,4 @@ Traceback (most recent call last):
     current_user: User = Depends(deps.get_current_active_user),
                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AttributeError: module 'app.api.deps' has no attribute 'get_current_active_user'. Did you mean: 'get_current_admin_user'?
+INFO:     Stopping reloader process [18240]
